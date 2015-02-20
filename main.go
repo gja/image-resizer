@@ -7,7 +7,14 @@ import (
 	"strings"
 	"os"
 	"io"
+	"image"
+	"image/png"
+	"image/jpeg"
 )
+
+func imageUrl(key string) string {
+	return "http://d1pcxoetpnw26i.cloudfront.net/" + key
+}
 
 type CachingResponseWriter struct {
 	cacheLength int
@@ -41,37 +48,50 @@ func getExtension(filename string) string {
 	return x[len(x) - 1]
 }
 
+func resizeAndWrite(_ string, extension string, inputStream io.Reader, outputStream *os.File) {
+	img, _, err := image.Decode(inputStream)
+	if(err != nil) {
+		return
+	}
+
+	switch strings.ToLower(extension) {
+	case "png": png.Encode(outputStream, img)
+	case "jpg": jpeg.Encode(outputStream, img, nil)
+	case "jpeg": jpeg.Encode(outputStream, img, nil)
+	}
+}
+
 func loadObject(path string) {
 	parts := strings.Split(path, "/")
 
 	if (len(parts) < 4) {
 		return
 	}
-	props, key, filename := parts[1], strings.Join(parts[2:len(parts) - 1], "/"), parts[len(parts) - 1]
+	properties, key, filename := parts[1], strings.Join(parts[2:len(parts) - 1], "/"), parts[len(parts) - 1]
 	outputDirectory := strings.Join(parts[1:len(parts) - 1], "/")
 	extension := getExtension(filename)
 
-	resp, err := http.Get("http://d1pcxoetpnw26i.cloudfront.net/thequint/2015-02/115f1834-306f-48ef-9024-7145e51e2cbe/manjhi.jpg-large")
+	resp, err := http.Get(imageUrl(key))
 	defer resp.Body.Close()
-	if (err != nil) {
-		fmt.Printf("Could not Read" + path)
+	if (err != nil || resp.StatusCode != 200) {
+		fmt.Printf("[ERROR] Could not Read " + path + "\n")
 		return
 	}
 
 	error := os.MkdirAll("public/" + outputDirectory, 0755)
 	if (error != nil) {
-		fmt.Printf("Could not Create Directory" + outputDirectory)
+		fmt.Printf("[ERROR] Could not Create Directory " + outputDirectory + "\n")
 		return
 	}
 
 	out, err := os.Create("public/" + path)
 	if (err != nil) {
-		fmt.Printf("Could not Create File" + path)
+		fmt.Printf("[ERROR] Could not Create File " + path + "\n")
 		return
 	}
 	defer out.Close()
 
-	io.Copy(out, resp.Body)
+	resizeAndWrite(properties, extension, resp.Body, out)
 }
 
 func fetchObject() negroni.Handler {
