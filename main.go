@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/negroni"
+	"github.com/nfnt/resize"
 	"net/http"
 	"strings"
 	"os"
@@ -10,7 +11,35 @@ import (
 	"image"
 	"image/png"
 	"image/jpeg"
+	"strconv"
 )
+
+func readAndResize(properties string, inputStream io.Reader) image.Image {
+	img, _, err := image.Decode(inputStream)
+	if(err != nil) {
+		return nil
+	}
+
+	parts := strings.Split(properties, "x")
+
+	if (len(parts) < 3) {
+		return nil
+	}
+
+
+	width, err := strconv.ParseUint(parts[1], 10, 32)
+	if (err != nil) {
+		return nil
+	}
+
+	height, err := strconv.ParseUint(parts[2], 10, 32)
+	if (err != nil) {
+		return nil
+	}
+
+	return resize.Resize(uint(width), uint(height), img, resize.MitchellNetravali)
+}
+
 
 type CachingResponseWriter struct {
 	cacheLength int
@@ -44,19 +73,6 @@ func getExtension(filename string) string {
 	return x[len(x) - 1]
 }
 
-func resizeAndWrite(_ string, extension string, inputStream io.Reader, outputStream *os.File) {
-	img, _, err := image.Decode(inputStream)
-	if(err != nil) {
-		return
-	}
-
-	switch strings.ToLower(extension) {
-	case "png": png.Encode(outputStream, img)
-	case "jpg": jpeg.Encode(outputStream, img, nil)
-	case "jpeg": jpeg.Encode(outputStream, img, nil)
-	}
-}
-
 func loadObject(imageSource string, path string) {
 	parts := strings.Split(path, "/")
 
@@ -80,6 +96,12 @@ func loadObject(imageSource string, path string) {
 		return
 	}
 
+	img := readAndResize(properties, resp.Body)
+
+	if (img == nil) {
+		return
+	}
+
 	out, err := os.Create("public/" + path)
 	if (err != nil) {
 		fmt.Printf("[ERROR] Could not Create File " + path + "\n")
@@ -87,7 +109,11 @@ func loadObject(imageSource string, path string) {
 	}
 	defer out.Close()
 
-	resizeAndWrite(properties, extension, resp.Body, out)
+	switch strings.ToLower(extension) {
+	case "png": png.Encode(out, img)
+	case "jpg": jpeg.Encode(out, img, nil)
+	case "jpeg": jpeg.Encode(out, img, nil)
+	}
 }
 
 func fetchObject(imageSource string) negroni.Handler {
