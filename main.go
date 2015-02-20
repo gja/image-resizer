@@ -91,7 +91,7 @@ func loadObject(imageSource string, path string) {
 		return
 	}
 
-	error := os.MkdirAll("public/" + outputDirectory, 0755)
+	error := os.MkdirAll("cached-images/" + outputDirectory, 0755)
 	if (error != nil) {
 		fmt.Printf("[ERROR] Could not Create Directory " + outputDirectory + "\n")
 		return
@@ -103,7 +103,7 @@ func loadObject(imageSource string, path string) {
 		return
 	}
 
-	out, err := os.Create("public/" + path)
+	out, err := os.Create("cached-images/" + path)
 	if (err != nil) {
 		fmt.Printf("[ERROR] Could not Create File " + path + "\n")
 		return
@@ -135,9 +135,9 @@ func main() {
 	n.Use(negroni.NewRecovery())
 	n.Use(negroni.NewLogger())
 	n.Use(cacheFor(31104000))
-	n.Use(negroni.NewStatic(http.Dir("public")))
+	n.Use(negroni.NewStatic(http.Dir("cached-images")))
 	n.Use(fetchObject(os.Args[1]))
-	n.Use(negroni.NewStatic(http.Dir("public")))
+	n.Use(negroni.NewStatic(http.Dir("cached-images")))
 	n.UseHandler(http.NotFoundHandler())
 	n.Run(":8080")
 }
