@@ -9,15 +9,21 @@ http://yourserver:port/rxWIDTHxHEIGHT/RELATIVE_IMAGE_PATH/anything.EXTENSION
 PS: We set a Cache-Control header for 360 days, so hopefully our load should be way low
 
 Building:
-    make
+```sh    
+make
+```
 
 Usage:
-    ./main http://golang.org/
+```sh
+./main http://golang.org/
+```
 
 Now check out the following urls in your browser
-    http://golang.org/doc/gopher/frontpage.png
-    http://localhost:8080/abcdx250x340/doc/gopher/frontpage.png/frontpage.png
-    http://localhost:8080/abcdx250x340/doc/gopher/frontpage.png/frontpage.jpg
-    http://localhost:8080/abcdx125x170/doc/gopher/frontpage.png/frontpage.png
-    http://localhost:8080/abcdx125x0/doc/gopher/frontpage.png/frontpage.png
-    http://localhost:8080/abcdx0x0/doc/gopher/frontpage.png/frontpage.png
+```text
+http://golang.org/doc/gopher/frontpage.png
+http://localhost:8080/abcdx250x340/doc/gopher/frontpage.png/frontpage.png
+http://localhost:8080/abcdx250x340/doc/gopher/frontpage.png/frontpage.jpg
+http://localhost:8080/abcdx125x170/doc/gopher/frontpage.png/frontpage.png
+http://localhost:8080/abcdx125x0/doc/gopher/frontpage.png/frontpage.png
+http://localhost:8080/abcdx0x0/doc/gopher/frontpage.png/frontpage.png
+```
