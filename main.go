@@ -12,10 +12,6 @@ import (
 	"image/jpeg"
 )
 
-func imageUrl(key string) string {
-	return "http://d1pcxoetpnw26i.cloudfront.net/" + key
-}
-
 type CachingResponseWriter struct {
 	cacheLength int
 	responseWriter http.ResponseWriter
@@ -61,7 +57,7 @@ func resizeAndWrite(_ string, extension string, inputStream io.Reader, outputStr
 	}
 }
 
-func loadObject(path string) {
+func loadObject(imageSource string, path string) {
 	parts := strings.Split(path, "/")
 
 	if (len(parts) < 4) {
@@ -71,7 +67,7 @@ func loadObject(path string) {
 	outputDirectory := strings.Join(parts[1:len(parts) - 1], "/")
 	extension := getExtension(filename)
 
-	resp, err := http.Get(imageUrl(key))
+	resp, err := http.Get(imageSource + key)
 	defer resp.Body.Close()
 	if (err != nil || resp.StatusCode != 200) {
 		fmt.Printf("[ERROR] Could not Read " + path + "\n")
@@ -94,10 +90,10 @@ func loadObject(path string) {
 	resizeAndWrite(properties, extension, resp.Body, out)
 }
 
-func fetchObject() negroni.Handler {
+func fetchObject(imageSource string) negroni.Handler {
 	return negroni.HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		defer next(rw, r)
-		loadObject(r.URL.Path)
+		loadObject(imageSource, r.URL.Path)
 	})
 }
 
@@ -107,7 +103,7 @@ func main() {
 	n.Use(negroni.NewLogger())
 	n.Use(cacheFor(31104000))
 	n.Use(negroni.NewStatic(http.Dir("public")))
-	n.Use(fetchObject())
+	n.Use(fetchObject(os.Args[1]))
 	n.Use(negroni.NewStatic(http.Dir("public")))
 	n.UseHandler(http.NotFoundHandler())
 	n.Run(":8080")
