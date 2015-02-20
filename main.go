@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/negroni"
 	"github.com/nfnt/resize"
+	"github.com/golang/groupcache/singleflight"
 	"net/http"
 	"strings"
 	"os"
@@ -117,9 +118,15 @@ func loadObject(imageSource string, path string) {
 }
 
 func fetchObject(imageSource string) negroni.Handler {
+	group := singleflight.Group{}
+
 	return negroni.HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		defer next(rw, r)
-		loadObject(imageSource, r.URL.Path)
+		group.Do(r.URL.Path, func () (interface{}, error) {
+			loadObject(imageSource, r.URL.Path)
+			return nil, nil
+		})
+
 	})
 }
 

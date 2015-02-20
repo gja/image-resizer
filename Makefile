@@ -1,7 +1,7 @@
 .PHONY: deps
 
 main: deps
-	go build main.go
+	GOPATH=`pwd`/vendor go build main.go
 
 deps:
-	go get "github.com/codegangsta/negroni" "github.com/nfnt/resize"
+	GOPATH=`pwd`/vendor go get "github.com/codegangsta/negroni" "github.com/nfnt/resize" "github.com/golang/groupcache/singleflight"

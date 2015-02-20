@@ -1,7 +1,7 @@
 # Image Resizer
 
 This is a stateless, performant service, which will fetch images from a source you specify,
-and resize it. This image is cached on disk for further requests.
+and resize it. This image is cached on disk for further requests. Requests are deduped as well
 
 This should ideally be fronted by a CDN like cloudfront. The syntax of the url looks like this:
 http://yourserver:port/rxWIDTHxHEIGHT/RELATIVE_IMAGE_PATH/anything.EXTENSION
