@@ -1,4 +1,4 @@
-package main
+package image_proxy
 
 import (
 	"fmt"
