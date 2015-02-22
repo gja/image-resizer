@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"flag"
 	"github.com/codegangsta/negroni"
 	"github.com/nfnt/resize"
 	"github.com/golang/groupcache/singleflight"
@@ -131,13 +132,17 @@ func fetchObject(imageSource string) negroni.Handler {
 }
 
 func main() {
+	bind := flag.String("bind", ":8080", "Port (and optional ip) to listen on :8080")
+	base := flag.String("base", "http://golang.org/", "Upstream image path")
+	flag.Parse()
+
 	n := negroni.New()
 	n.Use(negroni.NewRecovery())
 	n.Use(negroni.NewLogger())
 	n.Use(cacheFor(31104000))
 	n.Use(negroni.NewStatic(http.Dir("cached-images")))
-	n.Use(fetchObject(os.Args[1]))
+	n.Use(fetchObject(*base))
 	n.Use(negroni.NewStatic(http.Dir("cached-images")))
 	n.UseHandler(http.NotFoundHandler())
-	n.Run(":8080")
+	n.Run(*bind)
 }

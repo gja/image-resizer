@@ -15,7 +15,7 @@ make
 
 Usage:
 ```sh
-./main http://golang.org/
+./image-proxy --base=http://golang.org/ --bind=:8080
 ```
 
 Now check out the following urls in your browser
